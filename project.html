@@ -1,0 +1,353 @@
+<html>
+	<head>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+			button
+		</style>
+	</head>
+	<body>
+		<div id="info">Classroom rendering</div>
+		<script src="js/three.js"></script>
+		<script src="js/ObjectLoader.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<script src="js/stats.js"></script>
+		<div>
+			<button onclick="function1()">1</button>
+			<button onclick="function2()">2</button>
+			<button onclick="function3()">3</button>
+			<button onclick="function4()">4</button>
+			<button onclick="function5()">5</button>
+		</div>
+
+		<script>
+			//show fps panel
+			var stats = new Stats();
+			stats.showPanel(0);
+			stats.domElement.style.cssText = 'position:absolute;top:0px;right:0px;';
+			document.body.appendChild(stats.domElement);
+
+			var WIDTH = window.innerWidth;
+			var HEIGHT = window.innerHeight;
+
+			var scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			controls = new THREE.OrbitControls( camera );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.BasicShadowMap;
+			document.body.appendChild( renderer.domElement );
+
+			camera.position.z = 1000;
+
+			var length = 55, width = 35, floorHeight = -10, roomHeight = 20;
+
+			function addLight(floor) {
+				var ambientLight = new THREE.AmbientLight(0xdddddd, 0.3);
+				scene.add(ambientLight);
+				var lightHeight = 7;
+				var distance = 3.5;
+				var lightDensity = 0.8;
+				var decay = 2;
+				var disappear = 50;
+				var color = 0xdddddd;
+
+				var light1 = new THREE.SpotLight(color, lightDensity, disappear);
+				light1.position.set(-length/distance, lightHeight, width/distance);
+				var target1  = new THREE.Object3D();
+				target1.position.set(-length/distance, floorHeight, width/distance);
+				scene.add(target1);
+				light1.target = target1;
+				light1.castShadow = true;
+				var helper = new THREE.CameraHelper(light1.shadow.camera );
+				scene.add(light1);
+				scene.add(helper);
+				//light1.shadowCameraVisible = true;
+
+				var light2 = new THREE.SpotLight(color, lightDensity, disappear);
+				light2.position.set(length/distance, lightHeight, width/distance);
+				var target2  = new THREE.Object3D();
+				target2.position.set(length/distance, floorHeight, width/distance);
+				scene.add(target2);
+				light2.target = target2;
+				light2.castShadow = true;
+				scene.add(light2);
+				var helper2 = new THREE.CameraHelper(light2.shadow.camera );
+				scene.add(light2);
+				scene.add(helper2);
+
+				var light3 = new THREE.SpotLight(color, lightDensity, disappear);
+				light3.position.set(-length/distance, lightHeight, -width/distance);
+				var target3  = new THREE.Object3D();
+				target3.position.set(-length/distance, floorHeight, -width/distance);
+				scene.add(target3);
+				light3.target = target3;
+				light3.castShadow = true;
+				scene.add(light3);
+				var helper3 = new THREE.CameraHelper(light3.shadow.camera );
+				scene.add(light3);
+				scene.add(helper3);
+
+				var light4 = new THREE.SpotLight(color, lightDensity, disappear);
+				light4.position.set(length/distance, lightHeight, -width/distance);
+				var target4 = new THREE.Object3D();
+				target4.position.set(length/distance, floorHeight, -width/distance);
+				scene.add(target4);
+				light4.target = target4;
+				light4.castShadow = true;
+				scene.add(light4);
+				var helper4 = new THREE.CameraHelper(light4.shadow.camera );
+				scene.add(light4);
+				scene.add(helper4);
+				
+			}
+
+			function buildFloorBox() {
+				var geometry = new THREE.BoxGeometry(length, 0.2, width, 20, 1, 20);
+				var floorMap = new THREE.TextureLoader().load( "textures/floor.jpeg" );
+				floorMap.wrapS = THREE.RepeatWrapping;
+				floorMap.wrapT = THREE.RepeatWrapping;
+				floorMap.repeat.set(length / 4, width / 4);
+
+				var material = new THREE.MeshPhongMaterial({
+					map: floorMap,
+					color: 0xdddddd
+				});
+				
+				var floor = new THREE.Mesh(geometry, material);
+				floor.position.set(0,floorHeight,0);
+				floor.receiveShadow = true;
+				return floor;
+			}
+
+			function buildFloor() {
+				var geometry = new THREE.PlaneGeometry(length,width, 10,10);
+				var floorMap = new THREE.TextureLoader().load( "textures/floor.jpeg" );
+				floorMap.wrapS = THREE.RepeatWrapping;
+				floorMap.wrapT = THREE.RepeatWrapping;
+				floorMap.repeat.set(length / 4, width / 4);
+				var material = new THREE.MeshPhongMaterial({
+					map: floorMap,
+					color: 0xdddddd,
+					side: THREE.DoubleSide
+				});
+				var floor = new THREE.Mesh(geometry, material);
+				floor.rotation.x -= Math.PI / 2;
+				floor.position.set(0, floorHeight, 0);
+				floor.receiveShadow = true;
+				return floor;
+			}
+
+			function buildWall() {
+				var left = new THREE.BoxGeometry(0.2, roomHeight,width, 2,);
+				var wallMaterial = new THREE.MeshPhongMaterial({
+					color: 0xffffff,
+					wireframe: true
+				});
+				var leftWall = new THREE.Mesh(left, wallMaterial);
+				var rightWall = new THREE.Mesh(left, wallMaterial);
+				rightWall.position.set(length/2, 0, 0);
+				leftWall.position.set(-length/2, 0, 0);
+				scene.add(leftWall);
+				scene.add(rightWall);
+
+				var front = new THREE.BoxGeometry(length, roomHeight, 0.2);
+				var frontWall = new THREE.Mesh(front, wallMaterial);
+				var backWall = new THREE.Mesh(front, wallMaterial);
+				frontWall.position.set(0, 0, -width/2);
+				backWall.position.set(0, 0, width/2);
+				scene.add(frontWall);
+				scene.add(backWall);
+
+				var roof = new THREE.BoxGeometry(length, 0.2, width, 2, 2, 2);
+				var roofWall = new THREE.Mesh(roof, wallMaterial);
+				roofWall.position.set(0, roomHeight + floorHeight, 0);
+				scene.add(roofWall);
+			}
+
+			function buildDoor() {
+				var doorHeight = roomHeight * 0.7;
+				var doorWidth = 5;
+				var doorShape = new THREE.BoxGeometry(0.2, doorHeight, doorWidth, 10, 10, 10);
+				var material = new THREE.MeshPhongMaterial({
+					color: 0xff6868,
+					wireframe: true
+				});
+				var door = new THREE.Mesh(doorShape, material);
+				door.position.set(length/2, floorHeight + doorHeight/2, -width/4);
+				door.castShadow = true;
+				scene.add(door);
+			}
+
+			function buildBlackboard() {
+				var boardLength = length * 0.5;
+				var boardWidth = roomHeight * 0.4;
+				var boardShape = new THREE.BoxGeometry(boardLength, boardWidth, 0.2, 10, 10, 10);
+				var material = new THREE.MeshPhongMaterial({
+					color: 0x68ff68,
+					wireframe: true
+				});
+				var board = new THREE.Mesh(boardShape, material);
+				var boardHeight = roomHeight * 0.05;
+				board.position.set(0, boardHeight, -width/2);
+				board.castShadow = true;
+				scene.add(board);
+			}
+
+			function buildDesk() {
+				var deskLength = length / 3.5;
+				var deskWidth = width / 5;
+				var deskHeight = roomHeight * 0.3;
+				var deskBoard = new THREE.BoxGeometry(deskLength, 0.2, deskWidth, 10, 10, 10);
+				var deskMaterial = new THREE.MeshPhongMaterial({
+					color: 0x0072bb,
+					wireframe: true
+				});
+				var desk = new THREE.Mesh(deskBoard, deskMaterial);
+				var deskX = -length/6;
+				var deskY = floorHeight + deskHeight;
+				var deskZ = -width/5;
+				desk.position.set(deskX, deskY, deskZ);
+				desk.castShadow = true;
+				scene.add(desk);
+
+				function buildDeskLeg(x, z) {
+					var legWidth = 0.6;
+					var legHeight = deskHeight;
+					var legShape = new THREE.BoxGeometry(legWidth, legHeight, legWidth, 10, 10, 10);
+					var legMaterial = new THREE.MeshPhongMaterial({
+						color: 0x0072bb,
+						wireframe: true
+					});
+					var leg = new THREE.Mesh(legShape, legMaterial);
+					leg.position.set(desk.position.x + x, desk.position.y - legHeight/2, desk.position.z + z);
+					leg.castShadow = true;
+					scene.add(leg);
+				}
+
+				buildDeskLeg(-desk.position.x * 0.7, deskZ * 0.3);
+				buildDeskLeg(-desk.position.x * 0.7, -deskZ * 0.3);
+				buildDeskLeg(desk.position.x * 0.7, deskZ * 0.3);
+				buildDeskLeg(desk.position.x * 0.7, -deskZ * 0.3);
+			}
+
+			function buildChair() {
+				function addChair(x,y,z) {
+					var chairShape = new THREE.BoxGeometry(3, 3, 3, 1, 1, 1);
+					var material = new THREE.MeshPhongMaterial({
+						color: 0xfffff, 
+						wireframe: false
+					});
+					var chair = new THREE.Mesh(chairShape, material);
+					chair.position.set(x, y, z);
+					chair.castShadow = true;
+					scene.add(chair);
+				}
+				for (i = -length/2 + 6; i < length/2 - 3; i += 6) {
+					for (j = width / 15; j < width / 2 - 2; j += 6) {
+						addChair(i, floorHeight + 3 /2, j);
+					}
+					
+				}
+			}
+
+
+			function buildWindow() {
+				var windowHeight = roomHeight * 0.5;
+				var windowWidth = width / 5;
+				var windowShape = new THREE.BoxGeometry(0.2, windowHeight, windowWidth, 10, 10, 10);
+				var material = new THREE.MeshPhongMaterial({
+					color: 0xff6868,
+					wireframe: true
+				});
+				var window = new THREE.Mesh(windowShape, material);
+				window.position.set(-length/2, floorHeight + roomHeight / 2, width / 5);
+				window.castShadow = true;
+				scene.add(window);
+			}
+
+			//add stars
+			function pointsGenerator(num) {
+  				var geometry = new THREE.Geometry();
+  				for (var i = 0;i < num; i++) {
+  						var pX = THREE.Math.randFloatSpread( 300 );
+   						var pY = THREE.Math.randFloatSpread( 300 );
+    					var pZ = THREE.Math.randFloatSpread( 300 );
+    					var vector = new THREE.Vector3(pX, pY, pZ);
+    					geometry.vertices.push(vector);
+  				}
+  				return geometry;
+			}
+			var points = pointsGenerator(2000);
+			var pointMaterial = new THREE.PointsMaterial({
+				color: 0xffffff,
+				specular: 0x222222,
+				shininess: 5,
+				blending: THREE.AdditiveBlending,
+				transparent: false,
+				depthTest: false,
+				size: 0.3
+			});
+			var fireflies = new THREE.Points(points, pointMaterial);
+
+			var geometry = new THREE.BoxGeometry(2, 2, 2, 1, 1, 1);
+			var material = new THREE.MeshPhongMaterial({color: 0xfffff, wireframe: false});
+			var origin = new THREE.Mesh(geometry, material);
+			origin.position.set( -length / 5, floorHeight + 1, width / 5);
+			origin.castShadow = true;
+			origin.receiveShadow = true;
+
+			var floor = buildFloor();
+			buildWall();
+			buildDoor();
+			buildDesk();
+			buildWindow();
+			buildChair();
+			buildBlackboard();
+			addLight(floor);
+			scene.add(floor);
+			//scene.add(origin);
+			//scene.add(fireflies);
+			//stars added
+
+
+			function function2 (){
+
+            }
+
+            function function3 (){
+ 
+            }
+
+            function function4 (){
+
+            }
+
+            function function5 (){
+ 
+            }
+			
+			camera.position.z = 40;
+
+			var animate = function () {
+				stats.begin();
+
+				fireflies.rotation.x += 0.001;
+  				fireflies.rotation.y += 0.001;
+  				fireflies.rotation.z += 0.001;
+  				stats.end();
+  				requestAnimationFrame( animate );
+
+  				controls.update();
+
+				renderer.render(scene, camera);
+			};
+
+			animate();
+		</script>
+	</body>
+</html>
